@@ -1,0 +1,47 @@
+import tensorflow as tf
+import matplotlib.pyplot as plt
+from tensorflow.keras import Sequential
+from tensorflow.keras.optimizers import SGD,RMSprop,Adam
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.datasets import mnist
+(x,y),(xt,yt)=mnist.load_data()
+x=x.reshape(-1,784).astype("float32")/255
+xt=xt.reshape(-1,784).astype("float32")/255
+def M(opt):
+  m=Sequential([
+      Dense(64,activation="relu",input_shape=(784,)),
+      Dense(32,activation="relu"),
+      Dense(10,activation="softmax")
+  ])
+  m.compile(optimizer=opt,loss="sparse_categorical_crossentropy",metrics=["accuracy"])
+  return m
+ops={
+    "GD":SGD(.01),
+    "Momentum":SGD(.01,momentum=0.9),
+    "RMSProp":RMSprop(.001),
+    "Adam":Adam(.001)
+}
+results={}
+for name,opt in ops.items():
+  print("Training:",name)
+  m=M(opt)
+  h=m.fit(x,y,epochs=10,validation_split=.2,verbose=0)
+  acc=m.evaluate(xt,yt,verbose=0)[1]
+  results[name]=h,acc
+  print("Accuracy:",round(acc,4))
+for name,(h,acc) in results.items():
+  plt.plot(h.history["loss"],label=name)
+  plt.xlabel("Epochs")
+  plt.ylabel("Loss")
+plt.legend()
+plt.show()
+for name,(h,acc) in results.items():
+  plt.plot(h.history["accuracy"],label=name)
+  plt.xlabel("Epochs")
+  plt.ylabel("Accuracy")
+plt.legend()
+plt.show()
+print("performance Comparison:")
+for name,(h,acc) in results.items():
+  print(name,"->Accuracy:",round(acc,4),"loss:",round(h.history["loss"][-1],4))
+  
