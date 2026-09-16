@@ -1,0 +1,57 @@
+import tensorflow as tf
+import matplotlib.pyplot as plt
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras import Sequential
+from tensorflow.keras.layers import Dense,Dropout
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.regularizers import l1,l2
+(x,y),(xt,yt)=mnist.load_data()
+x=x.reshape(-1,784).astype("float32") / 255
+xt=xt.reshape(-1,784).astype("float32") / 255
+def M(reg=None,drop=0,lr=0.001):
+  m=Sequential([
+      tf.keras.Input(shape=(784,)), # Explicit Input layer added here
+      Dense(64,activation="relu",kernel_regularizer=reg),
+      Dropout(drop),
+      Dense(64,activation="relu"),
+      Dense(10,activation="softmax")
+  ])
+  m.compile(optimizer=Adam(lr),loss="sparse_categorical_crossentropy",metrics=["accuracy"])
+  return m
+
+models={
+    "l1":M(l1(0.001)),
+    "l2":M(l2(0.001)),
+    "DropOut":M(drop=0.3),
+    "EarlyStopping":M(),
+    "Hyparameter":M(lr=0.0001,drop=.2)
+}
+results={}
+for name,m in models.items():
+  print("Training:",name)
+  if name=="EarlyStopping":
+    es=EarlyStopping(patience=3,restore_best_weights=True)
+    h=m.fit(x,y,validation_split=0.2,epochs=5,callbacks=[es],verbose=0)
+  else:
+    h=m.fit(x,y,validation_split=0.2,epochs=5,verbose=0)
+  acc=m.evaluate(xt,yt,verbose=0)[1]
+  results[name]=(h,acc)
+  print("Accuracy:",(round(acc,4)))
+for name,(h,acc) in results.items():
+  plt.plot(h.history["accuracy"],label=name)
+plt.title("Regularization-Accuracy")
+plt.xlabel("Epochs")
+plt.ylabel("Accuracy")
+plt.legend()
+plt.show()
+for name,(h,acc) in results.items():
+  plt.plot(h.history["loss"],label=name)
+plt.title("Regularization-loss")
+plt.xlabel("Epochs")
+plt.ylabel("Loss")
+plt.legend()
+plt.show()
+print("perdormance comparison:")
+for name,(n,acc) in results.items():
+  print(name,"->Accuracy:",round(acc,4),"loss:",round(n.history["loss"][-1],4))
