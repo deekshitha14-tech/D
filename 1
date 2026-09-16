@@ -1,0 +1,19 @@
+import numpy as np
+def perceptron(X,y):
+  w=np.zeros(X.shape[1])
+  b=0
+  lr=0.1
+  for _ in range(10):
+    for i in range(len(X)):
+      p=int(np.dot(X[i],w)+b>=0)
+      e=y[i]-p
+      w+=lr*e*X[i]
+      b+=lr*e
+  for x in X:
+    print(x,"->",int(np.dot(x,w)+b>=0))
+print("AND")
+perceptron(np.array([[0,0],[0,1],[1,0],[1,1]]),[0,0,0,1])
+print("OR")
+perceptron(np.array([[0,0],[0,1],[1,0],[1,1]]),[0,1,1,1])
+print("NOT")
+perceptron(np.array([[0],[1]]),[1,0])
