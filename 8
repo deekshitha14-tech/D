@@ -1,0 +1,21 @@
+!pip install transformers sentencepiece -q
+
+from transformers import AutoTokenizer,AutoModelForSeq2SeqLM
+
+name="Helsinki-NLP/opus-mt-en-fr"
+t=AutoTokenizer.from_pretrained(name)
+m=AutoModelForSeq2SeqLM.from_pretrained(name)
+
+print("Encoder:",m.get_encoder())
+print("Decoder:",m.get_decoder())
+print("Attention:",m.get_decoder().layers[0].encoder_attn)
+
+sentences=["Hello, how are you?","Good morning",
+           "Thank you very much","I love machine learning",
+           "What is your name?"]
+
+for s in sentences:
+    x=t(s,return_tensors="pt")
+    y=m.generate(**x,max_length=50)
+    print("English:",s)
+    print("French:",t.decode(y[0],skip_special_tokens=True))
