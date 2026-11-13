@@ -1,0 +1,19 @@
+!pip -q install transformers scikit-learn
+from transformers import pipeline
+from sklearn.metrics import accuracy_score,ConfusionMatrixDisplay
+import matplotlib.pyplot as plt
+
+reviews=["great movie","terrible movie","love this film","hate this film",
+         "excellent acting","bad movie","amazing story","poor acting",
+         "good film","wonderful movie"]
+y=[1,0,1,0,1,0,1,0,0,1]
+
+m=pipeline("sentiment-analysis",model="distilbert/distilbert-base-uncased-finetuned-sst-2-english")
+p=[int(m(r)[0]["label"]=="POSITIVE") for r in reviews]
+
+for r,i in zip(reviews,p):
+    print(r,"->",["Negative","Positive"][i])
+
+print("Accuracy:",accuracy_score(y,p)*100,"%")
+ConfusionMatrixDisplay.from_predictions(y,p,display_labels=["Negative","Positive"])
+plt.show()
